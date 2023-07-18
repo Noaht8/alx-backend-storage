@@ -2,26 +2,26 @@
 """Log stats module"""
 from pymongo import MongoClient
 
+# Connect to MongoDB
+client = MongoClient()
+db = client.logs
+collection = db.nginx
 
-if __name__ == "__main__":
-    client = MongoClient('mongodb://127.0.0.1:27017')
-    db = client.logs.nginx
+# Get the total number of logs
+total_logs = collection.count_documents({})
 
-    num_logs = db.count_documents({})
-    print(f"{num_logs} logs")
+# Get the number of logs for each method
+methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+method_logs = {}
+for method in methods:
+    method_logs[method] = collection.count_documents({"method": method})
 
-    get = db.count_documents({'method': 'GET'})
-    post = db.count_documents({'method': 'POST'})
-    put = db.count_documents({'method': 'PUT'})
-    patch = db.count_documents({'method': 'PATCH'})
-    delete = db.count_documents({'method': 'DELETE'})
+# Get the number of logs with method=GET and path=/status
+status_check_logs = collection.count_documents({"method": "GET", "path": "/status"})
 
-    print("Methods:")
-    print(f"\tmethod GET: {get}")
-    print(f"\tmethod POST: {post}")
-    print(f"\tmethod PUT: {put}")
-    print(f"\tmethod PATCH: {patch}")
-    print(f"\tmethod DELETE: {delete}")
-
-    status = db.count_documents({'method': 'GET', 'path': '/status'})
-    print(f"{status} status check")
+# Print the statistics
+print(f"{total_logs} logs")
+print("Methods:")
+for method in methods:
+    print(f"\tmethod {method}: {method_logs[method]}")
+print(f"{status_check_logs} status check")
